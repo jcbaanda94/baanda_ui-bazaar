@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Bazaar – Enhanced UI</title>
+  <style>
+    /* === Global Reset & Base Styles === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Arial", sans-serif;
+    }
+
+    body {
+      background-color: #f4f4f4;
+      color: #333;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* We'll use CSS variables for easy theming (Light vs. Dark). */
+    :root {
+      --bg-color: #f4f4f4;
+      --text-color: #333;
+      --card-bg: #fff;
+      --card-text: #333;
+      --accent-color: #354F39;
+      --accent-text-color: #fff;
+      --hover-color: #2e422f;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --modal-bg: rgba(0, 0, 0, 0.6);
+    }
+
+    /* Dark mode overrides */
+    body.dark {
+      --bg-color: #1e1e1e;
+      --text-color: #ddd;
+      --card-bg: #2c2c2c;
+      --card-text: #ddd;
+      --accent-color: #27ae60; /* A brighter accent in dark mode */
+      --accent-text-color: #fff;
+      --hover-color: #229954;
+      --shadow-color: rgba(255, 255, 255, 0.1);
+      --modal-bg: rgba(0, 0, 0, 0.6);
+    }
+
+    body,
+    body.dark {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    /* === Header Styles === */
+    header {
+      background-color: var(--accent-color);
+      color: var(--accent-text-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 999; 
+      box-shadow: 0 2px 6px var(--shadow-color);
+    }
+
+    header .logo {
+      font-size: 1.25rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    header nav ul li a {
+      color: var(--accent-text-color);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color 0.2s ease;
+    }
+
+    header nav ul li a:hover {
+      color: #f0f0f0;
+    }
+
+    .dark-mode-toggle {
+      background: none;
+      border: 1px solid var(--accent-text-color);
+      color: var(--accent-text-color);
+      padding: 0.3rem 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+
+    .dark-mode-toggle:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* === Page Intro === */
+    .page-intro {
+      text-align: center;
+      margin: 2rem 0 1rem;
+    }
+
+    .page-intro h1 {
+      font-size: 2rem;
+      color: var(--accent-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-intro p {
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    /* === Filter and Search Section === */
+    .filter-search-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .filter-search-container label {
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+
+    .filter-search-container select,
+    .filter-search-container input[type="search"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 0.25rem;
+      min-width: 150px;
+      font-size: 0.9rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .filter-search-container select:focus,
+    .filter-search-container input[type="search"]:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--accent-color);
+    }
+
+    /* === Bazaar Grid === */
+    .bazaar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .bazaar-item {
+      background-color: var(--card-bg);
+      color: var(--card-text);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 2px 4px var(--shadow-color);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .bazaar-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 8px var(--shadow-color);
+    }
+
+    .bazaar-item img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .bazaar-item-content {
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .bazaar-item h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent-color);
+    }
+
+    .bazaar-item p {
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+
+    .bazaar-item .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .bazaar-item button {
+      background-color: var(--accent-color);
+      color: var(--accent-text-color);
+      border: none;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .bazaar-item button:hover {
+      background-color: var(--hover-color);
+    }
+
+    /* === Modal Styles === */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--modal-bg);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--card-text);
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 2px 6px var(--shadow-color);
+      position: relative;
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    /* Simple fade-in animation for modal */
+    @keyframes modalFadeIn {
+      from {
+        transform: translateY(-10px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.3rem;
+      color: var(--accent-color);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--card-text);
+    }
+
+    .modal-close:hover {
+      color: var(--accent-color);
+    }
+
+    .modal-body p {
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+
+    /* === Footer === */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+      color: #777;
+      font-size: 0.9rem;
+    }
+
+    /* === Responsive Adjustments === */
+    @media (max-width: 600px) {
+      .filter-search-container {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Baanda</div>
+    <nav>
+      <ul>
+        <li><a href="#">Lobby</a></li>
+        <li><a href="#">Readme</a></li>
+        <li><a href="#">Admin</a></li>
+        <li><a href="#">Account</a></li>
+        <li><a href="#">Logout</a></li>
+      </ul>
+    </nav>
+    <!-- Dark Mode Toggle Button -->
+    <button class="dark-mode-toggle" id="darkModeToggle">Dark Mode</button>
+  </header>
+
+  <!-- Main Title & Subheading -->
+  <section class="page-intro">
+    <h1>The Bazaar</h1>
+    <p>Community Marketplaces & Co-ops — Find goods, share resources, and support each other.</p>
+  </section>
+
+  <!-- Search and Filter Controls -->
+  <section class="filter-search-container">
+    <div class="filter-group">
+      <label for="category-filter">Filter By:</label>
+      <select id="category-filter">
+        <option value="all">All Categories</option>
+        <option value="food">Food & Beverage</option>
+        <option value="books">Books</option>
+        <option value="crafts">Arts & Crafts</option>
+        <option value="services">Services</option>
+        <option value="animals">Animals</option>
+      </select>
+    </div>
+    <div class="search-group">
+      <label for="bazaar-search">Search:</label>
+      <input type="search" id="bazaar-search" placeholder="Search stores..." />
+    </div>
+  </section>
+
+  <!-- BAZAAR ITEMS GRID -->
+  <section class="bazaar-grid" id="bazaarGrid">
+    <!-- Example Card 1 -->
+    <div class="bazaar-item" data-category="crafts">
+      <img src="https://placekitten.com/640/360" alt="Artisan Alley" />
+      <div class="bazaar-item-content">
+        <h2>Artisan Alley</h2>
+        <p>Handcrafted goods from local artisans. One-of-a-kind treasures and custom orders available.</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Artisan Alley" data-modal-text="Support local artisans and find unique handmade crafts. From pottery to jewelry, everything is made with care and artistry.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 2 -->
+    <div class="bazaar-item" data-category="books">
+      <img src="https://picsum.photos/640/360?grayscale" alt="Book Haven" />
+      <div class="bazaar-item-content">
+        <h2>Book Haven Co-Op Library</h2>
+        <p>Cooperative online library offering e-books, rare finds, and community reading events.</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Book Haven Co-Op Library" data-modal-text="Discover a vast collection of literary gems. Borrow, share, or donate books to expand our cooperative library.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 3 -->
+    <div class="bazaar-item" data-category="services">
+      <img src="https://picsum.photos/seed/cars/640/360" alt="Dragon Auto" />
+      <div class="bazaar-item-content">
+        <h2>Dragon Auto</h2>
+        <p>Auto repair and custom modifications. Protect what drives you!</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Dragon Auto" data-modal-text="Full-service auto repair and customization shop. Trusted service and fair prices for all vehicle types.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 4 -->
+    <div class="bazaar-item" data-category="animals">
+      <img src="https://picsum.photos/seed/animals/640/360" alt="Friends and Fauna" />
+      <div class="bazaar-item-content">
+        <h2>Friends and Fauna</h2>
+        <p>Pet adoption, supply co-op, and grooming services for furry, scaly, or feathered friends.</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Friends and Fauna" data-modal-text="A caring community for pets of all shapes and sizes. Find your new best friend or treat your companion to top-quality supplies.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 5 -->
+    <div class="bazaar-item" data-category="food">
+      <img src="https://picsum.photos/seed/bakery/640/360" alt="Hearth and Crust Artisan Breads" />
+      <div class="bazaar-item-content">
+        <h2>Hearth and Crust Artisan Breads</h2>
+        <p>Freshly baked, locally-sourced bread and pastries. Taste the tradition.</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Hearth and Crust Artisan Breads" data-modal-text="Our bread is baked fresh daily using time-honored techniques and premium ingredients sourced from local farms.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 6 -->
+    <div class="bazaar-item" data-category="food">
+      <img src="https://picsum.photos/seed/plants/640/360" alt="Plant Mart Coop" />
+      <div class="bazaar-item-content">
+        <h2>Plant Mart Coop</h2>
+        <p>Nursery and gardening supplies. Grow your own paradise with our expert advice.</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Plant Mart Coop" data-modal-text="From seeds to shrubs, we have everything you need to create a lush, thriving garden. Get personalized tips from horticulture experts.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 7 -->
+    <div class="bazaar-item" data-category="crafts">
+      <img src="https://picsum.photos/seed/toys/640/360" alt="Toy Store" />
+      <div class="bazaar-item-content">
+        <h2>Toy Store</h2>
+        <p>From classic toys to the latest crazes. Fun for all ages awaits!</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Toy Store" data-modal-text="Revisit the classics or discover the newest toys on the market. We aim to bring joy to children and the young at heart.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example Card 8 -->
+    <div class="bazaar-item" data-category="services">
+      <img src="https://picsum.photos/seed/wood/640/360" alt="Wood Depot" />
+      <div class="bazaar-item-content">
+        <h2>Wood Depot</h2>
+        <p>Quality lumber and carpentry supplies for your next DIY or professional project.</p>
+        <div class="actions">
+          <button class="explore-btn" data-modal-title="Wood Depot" data-modal-text="We carry a wide variety of woods and finishes for every carpentry need. Proudly serving professionals and hobbyists alike.">
+            More Info
+          </button>
+          <button>Visit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- More cards can be added as needed -->
+  </section>
+
+  <!-- MODAL OVERLAY (hidden by default) -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content" id="modalContent">
+      <div class="modal-header">
+        <h3 id="modalTitle"></h3>
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modalText"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2025 Baanda. All Rights Reserved.
+  </footer>
+
+  <!-- === JavaScript Section === -->
+  <script>
+    // ================ Dark Mode Toggle ================
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      darkModeToggle.textContent = document.body.classList.contains('dark')
+        ? 'Light Mode'
+        : 'Dark Mode';
+    });
+
+    // ================ Filtering & Search ================
+    const categoryFilter = document.getElementById('category-filter');
+    const searchInput = document.getElementById('bazaar-search');
+    const bazaarGrid = document.getElementById('bazaarGrid');
+    const items = bazaarGrid.getElementsByClassName('bazaar-item');
+
+    categoryFilter.addEventListener('change', filterItems);
+    searchInput.addEventListener('keyup', filterItems);
+
+    function filterItems() {
+      const selectedCategory = categoryFilter.value.toLowerCase();
+      const searchQuery = searchInput.value.toLowerCase();
+
+      Array.from(items).forEach(item => {
+        const category = item.getAttribute('data-category').toLowerCase();
+        const storeName = item.querySelector('h2').textContent.toLowerCase();
+
+        // Check category filter
+        const showByCategory = (selectedCategory === 'all') || (category === selectedCategory);
+
+        // Check search query (store name)
+        const showBySearch = storeName.includes(searchQuery);
+
+        // Show if meets both conditions
+        if (showByCategory && showBySearch) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // ================ Modal System ================
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+
+    const exploreButtons = document.querySelectorAll('.explore-btn');
+
+    exploreButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const title = button.dataset.modalTitle;
+        const text = button.dataset.modalText;
+
+        // Update modal content
+        modalTitle.textContent = title;
+        modalText.textContent = text;
+
+        // Show modal
+        modalOverlay.classList.add('active');
+      });
+    });
+
+    // Close modal on X button
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    // Close modal when clicking outside content
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        closeModal();
+      }
+    });
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
+  </script>
+
+</body>
+</html>
